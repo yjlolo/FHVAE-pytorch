@@ -3,8 +3,7 @@ import numpy as np
 from fhvae.datasets.seg_dataset import NumpySegmentDataset
 
 def load_data(name):
-    # root = "./datasets/%s" % name
-    root = "/home/cky-ubuntu/git/FHVAE-pytorch/datasets/%s" % name
+    root = "./datasets/%s" % name
     mvn_path = "%s/train/mvn.pkl" % root
     seg_len = 20
     seg_shift = 8

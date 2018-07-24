@@ -28,13 +28,13 @@ parser.add_argument("--n_print_steps", type=int, default=200,
 args = parser.parse_args()
 print(args)
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam()
-
 tr_nseqs, tr_shape, tr_iterator, dt_iterator = load_data(args.dataset)
 
 fhvae = FHVAE(nmu2=tr_nseqs, z1_dim=32, z2_dim=32,
               z1_hidden_dim=256, z2_hidden_dim=256, dec_hidden_dim=256)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(fhvae.parameters())
 
 for epoch in range(args.n_epochs):
     print("epoch %d" % (epoch+1))
