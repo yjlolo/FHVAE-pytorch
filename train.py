@@ -25,6 +25,10 @@ parser.add_argument("--n_steps_per_epoch", type=int, default=5000,
         help="number of training steps per epoch")
 parser.add_argument("--n_print_steps", type=int, default=200,
         help="number of steps to print statistics")
+parser.add_argument("--n_save_steps", type=int, default=200,
+        help="number of steps to save models")
+parser.add_argument("--save_path", type=str, default="./results",
+        help="path to save models")
 args = parser.parse_args()
 print(args)
 
@@ -37,8 +41,9 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(fhvae.parameters())
 
 current_step = 0
-for epoch in range(args.n_epochs):
-    print("epoch %d" % (epoch+1))
+epoch = 0
+while epoch < args.n_epochs:
+    print("Epoch %d" % (epoch+1))
     for x, y, n in tr_iterator():
         xin = Variable(torch.FloatTensor(x))
         xout = Variable(torch.FloatTensor(x))
@@ -74,4 +79,15 @@ for epoch in range(args.n_epochs):
         current_step += 1
 
         if current_step % args.n_print_steps == 0:
-            print("step %d, loss %f" % (current_step, loss.data[0]))
+            print("step %d, loss %f" % (current_step, loss.data))
+
+        if current_step % args.n_save_steps == 0:
+            print("saving model, epoch %d, step %d" % (epoch+1, current_step))
+            model_save_path = os.path.join(args.save_path, 'checkpoint_%d.pth.tar' % current_step)
+            state_dict = {'model': fhvae.state_dict(),
+                          'optimizer': optimizer.state_dict(),
+                          'current_step': current_step}
+            torch.save(state_dict, model_save_path)
+
+        if current_step % args.n_steps_per_epoch == 0:
+            epoch += 1
