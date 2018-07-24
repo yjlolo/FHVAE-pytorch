@@ -47,9 +47,9 @@ for epoch in range(args.n_epochs):
         mu2, qz2_x, z2, qz1_x, z1, px_z, x_sample = fhvae(xin, xout, y)
 
         # priors
-        pz1 = [0., np.log(1.0 ** 2).astype(np.float32)]
-        pz2 = [mu2, np.log(0.5 ** 2).astype(np.float32)]
-        pmu2 = [0., np.log(1.0 ** 2).astype(np.float32)]
+        pz1 = [torch.FloatTensor([0]), torch.FloatTensor([np.log(1.0 ** 2)])]
+        pz2 = [mu2, torch.FloatTensor([np.log(0.5 ** 2)])]
+        pmu2 = [torch.FloatTensor([0]), torch.FloatTensor([np.log(1.0 ** 2)])]
 
         # variational lower bound
         log_pmu2 = torch.sum(log_gauss(mu2, pmu2[0], pmu2[1]), dim=1)
