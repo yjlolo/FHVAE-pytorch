@@ -15,7 +15,7 @@ class FHVAE(nn.Module):
         self.z2_hidden_dim = z2_hidden_dim
         self.dec_hidden_dim = dec_hidden_dim
         self.mu2_lookup = nn.Embedding(nmu2, self.z2_dim)
-        self.z1_pre_encoder = nn.LSTM(self.input_dim, self.z1_hidden_dim, num_layers=1,
+        self.z1_pre_encoder = nn.LSTM(self.input_dim + self.z2_dim, self.z1_hidden_dim, num_layers=1,
                                       bidirectional=False, batch_first=True)
         self.z2_pre_encoder = nn.LSTM(self.input_dim, self.z2_hidden_dim, num_layers=1,
                                       bidirectional=False, batch_first=True)
@@ -59,7 +59,7 @@ class FHVAE(nn.Module):
 
     def decode(self, z1, z2, x):
         batch_size = x.size(0)
-        z1_z2 = torch.cat([z1, z2], dim=-1)
+        z1_z2 = torch.cat([z1, z2], dim=-1).unsqueeze(1)
         x_hidden = self.init_hidden(batch_size, self.dec_hidden_dim)
         out, x_mu, x_logvar, x_sample = [], [], [], []
 
