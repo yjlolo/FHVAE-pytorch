@@ -38,6 +38,7 @@ class FHVAE(nn.Module):
 
         z2_hidden = self.init_hidden(batch_size, self.z2_hidden_dim)
         _, (z2_pre_out, _) = self.z2_pre_encoder(x, z2_hidden)
+        z2_pre_out = z2_pre_out.squeeze()
         qz2_x = self.z2_linear(z2_pre_out)
         z2_mu, z2_logvar = torch.chunk(qz2_x, 2, dim=-1)
         qz2_x = [z2_mu, z2_logvar]
@@ -47,6 +48,7 @@ class FHVAE(nn.Module):
         z2 = z2_sample.unsqueeze(1).repeat(1, T, 1)
         x_z2 = torch.cat([x, z2], dim=-1)
         _, (z1_pre_out, _) = self.z1_pre_encoder(x_z2, z1_hidden)
+        z1_pre_out = z1_pre_out.squeeze()
         qz1_x = self.z1_linear(z1_pre_out)
         z1_mu, z1_logvar = torch.chunk(qz1_x, 2, dim=-1)
         qz1_x = [z1_mu, z1_logvar]
