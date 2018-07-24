@@ -285,7 +285,7 @@ class NumpyDataset(SequenceDataset):
                 with open(mvn_path, "wb") as f:
                     pickle.dump(self.mvn_params, f)
             else:
-                with open(mvn_path) as f:
+                with open(mvn_path, "rb") as f:
                     self.mvn_params = pickle.load(f)
         else:
             self.mvn_params = None
@@ -295,7 +295,7 @@ class NumpyDataset(SequenceDataset):
             self.feats = dict(feats)
             
         def __getitem__(self, seq):
-            with open(self.feats[seq]) as f:
+            with open(self.feats[seq], 'rb') as f:
                 feat = np.load(f)
             return feat
 
