@@ -29,13 +29,17 @@ parser.add_argument("--n_save_steps", type=int, default=200,
         help="number of steps to save models")
 parser.add_argument("--save_path", type=str, default="./results",
         help="path to save models")
+parser.add_argument('--no-cuda', action='store_true', default=False,
+        help='enables CUDA training')
 args = parser.parse_args()
 print(args)
+
+device = torch.device("cuda" if args.cuda else "cpu")
 
 tr_nseqs, tr_shape, tr_iterator, dt_iterator = load_data(args.dataset)
 
 fhvae = FHVAE(nmu2=tr_nseqs, z1_dim=32, z2_dim=32,
-              z1_hidden_dim=256, z2_hidden_dim=256, dec_hidden_dim=256)
+              z1_hidden_dim=256, z2_hidden_dim=256, dec_hidden_dim=256).to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(fhvae.parameters())
@@ -45,10 +49,10 @@ epoch = 0
 while epoch < args.n_epochs:
     print("Epoch %d" % (epoch+1))
     for x, y, n in tr_iterator():
-        xin = Variable(torch.FloatTensor(x))
-        xout = Variable(torch.FloatTensor(x))
-        y = Variable(torch.LongTensor(y))
-        n = Variable(torch.FloatTensor(n))
+        xin = Variable(torch.FloatTensor(x)).to(device)
+        xout = Variable(torch.FloatTensor(x)).to(device)
+        y = Variable(torch.LongTensor(y)).to(device)
+        n = Variable(torch.FloatTensor(n)).to(device)
 
         mu2, qz2_x, z2, qz1_x, z1, px_z, x_sample = fhvae(xin, xout, y)
 
