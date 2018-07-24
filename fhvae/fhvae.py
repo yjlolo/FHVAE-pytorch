@@ -44,7 +44,7 @@ class FHVAE(nn.Module):
         z2_sample = self.reparameterize(z2_mu, z2_logvar)
 
         z1_hidden = self.init_hidden(batch_size, self.z1_hidden_dim)
-        z2 = z2_sample.unsqeeze(1).repeat(1, T, 1)
+        z2 = z2_sample.unsqueeze(1).repeat(1, T, 1)
         x_z2 = torch.cat([x, z2], dim=-1)
         _, (z1_pre_out, _) = self.z1_pre_encoder(x_z2, z1_hidden)
         qz1_x = self.z1_linear(z1_pre_out)
