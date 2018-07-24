@@ -97,7 +97,7 @@ class FHVAE(nn.Module):
 
 
 def log_gauss(x, mu, logvar):
-    return -0.5 * (np.log(2 * np.pi) + logvar + torch.pow(x - mu, 2) / torch.exp(logvar))
+    return -0.5 * (np.log(2 * np.pi) + logvar.data + torch.pow(x.data - mu.data, 2) / torch.exp(logvar.data))
 
 def kld(p_mu, p_logvar, q_mu, q_logvar):
-    return -0.5 * (1 + p_logvar - q_logvar - (torch.pow(p_mu - q_mu, 2) + torch.exp(p_logvar)) / torch.exp(q_logvar))
+    return -0.5 * (1 + p_logvar.data - q_logvar.data - (torch.pow(p_mu.data - q_mu.data, 2) + torch.exp(p_logvar.data)) / torch.exp(q_logvar.data))

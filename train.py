@@ -42,7 +42,7 @@ for epoch in range(args.n_epochs):
         xin = Variable(torch.FloatTensor(x))
         xout = Variable(torch.FloatTensor(x))
         y = Variable(torch.LongTensor(y))
-        n = Variable(torch.LongTensor(n))
+        n = Variable(torch.FloatTensor(n))
 
         mu2, qz2_x, z2, qz1_x, z1, px_z, x_sample = fhvae(xin, xout, y)
 
