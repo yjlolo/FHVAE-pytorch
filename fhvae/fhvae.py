@@ -8,7 +8,7 @@ class FHVAE(nn.Module):
     def __init__(self, nmu2, z1_dim=32, z2_dim=32,
                  z1_hidden_dim=256, z2_hidden_dim=256, dec_hidden_dim=256):
         super(FHVAE, self).__init__()
-        self.input_dim = 100
+        self.input_dim = 80
         self.z1_dim = z1_dim
         self.z2_dim = z2_dim
         self.z1_hidden_dim = z1_hidden_dim

@@ -38,9 +38,11 @@ optimizer = optim.Adam(fhvae.parameters())
 
 for epoch in range(args.n_epochs):
     print("epoch %d" % (epoch+1))
-    for i, (x, y, n) in enumerate(tr_iterator):
-        xin = x
-        xout = x
+    for i, (x, y, n) in enumerate(tr_iterator()):
+        xin = Variable(torch.FloatTensor(x))
+        xout = Variable(torch.FloatTensor(x))
+        y = Variable(torch.IntTensor(y))
+        n = Variable(torch.IntTensor(n))
 
         mu2, qz2_x, z2, qz1_x, z1, px_z, x_sample = fhvae(xin, xout, y)
 
