@@ -36,9 +36,10 @@ fhvae = FHVAE(nmu2=tr_nseqs, z1_dim=32, z2_dim=32,
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(fhvae.parameters())
 
+current_step = 0
 for epoch in range(args.n_epochs):
     print("epoch %d" % (epoch+1))
-    for i, (x, y, n) in enumerate(tr_iterator()):
+    for x, y, n in tr_iterator():
         xin = Variable(torch.FloatTensor(x))
         xout = Variable(torch.FloatTensor(x))
         y = Variable(torch.LongTensor(y))
@@ -66,3 +67,11 @@ for epoch in range(args.n_epochs):
         log_qy = criterion(logits, y)
 
         loss = - torch.mean(lb + args.alpha_dis * log_qy)
+
+        loss.backward()
+        optimizer.step()
+
+        current_step += 1
+
+        if current_step % args.n_print_steps == 0:
+            print("step %d, loss %f" % (current_step, loss.data[0]))
