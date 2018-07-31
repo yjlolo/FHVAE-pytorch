@@ -90,16 +90,16 @@ while epoch < args.n_epochs:
         pmu2 = [zero, sigma_one]
 
         # variational lower bound
-        log_pmu2 = torch.sum(log_gauss(mu2, pmu2[0], pmu2[1]), dim=1)
-        kld_z2 = torch.sum(kld(qz2_x[0], qz2_x[1], pz2[0], pz2[1]), dim=1)
-        kld_z1 = torch.sum(kld(qz1_x[0], qz1_x[1], pz1[0], pz1[1]), dim=1)
-        log_px_z = torch.sum(log_gauss(xout, px_z[0], px_z[1]).view(xout.size(0), -1), dim=1)
+        log_pmu2 = torch.mean(log_gauss(mu2, pmu2[0], pmu2[1]), dim=1)
+        kld_z2 = torch.mean(kld(qz2_x[0], qz2_x[1], pz2[0], pz2[1]), dim=1)
+        kld_z1 = torch.mean(kld(qz1_x[0], qz1_x[1], pz1[0], pz1[1]), dim=1)
+        log_px_z = torch.mean(log_gauss(xout, px_z[0], px_z[1]).view(xout.size(0), -1), dim=1)
         lb = log_px_z - kld_z1 - kld_z2 + log_pmu2 / n.float()
 
         # discriminative loss
         logits = qz2_x[0].unsqueeze(1) - fhvae.mu2_lookup.weight.unsqueeze(0)
         logits = -1 * torch.pow(logits, 2) / (2 * torch.exp(pz2[1]))
-        logits = torch.sum(logits, dim=-1)
+        logits = torch.mean(logits, dim=-1)
 
         log_qy = criterion(logits, y)
 
