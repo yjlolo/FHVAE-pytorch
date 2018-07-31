@@ -6,9 +6,10 @@ from torch.autograd import Variable
 
 class FHVAE(nn.Module):
     def __init__(self, nmu2, z1_dim=32, z2_dim=32,
-                 z1_hidden_dim=256, z2_hidden_dim=256, dec_hidden_dim=256):
+                 z1_hidden_dim=256, z2_hidden_dim=256, dec_hidden_dim=256, use_cuda=True):
         super(FHVAE, self).__init__()
-        self.input_dim = 80
+        self.use_cuda = use_cuda
+        self.input_dim = 321
         self.z1_dim = z1_dim
         self.z2_dim = z2_dim
         self.z1_hidden_dim = z1_hidden_dim
@@ -29,6 +30,9 @@ class FHVAE(nn.Module):
         n_layers = 1
         h = Variable(torch.zeros(n_layers, batch_size, hidden_dim))
         c = Variable(torch.zeros(n_layers, batch_size, hidden_dim))
+        if self.use_cuda:
+            h = h.cuda()
+            c = c.cuda()
         return (h, c)
 
     def encode(self, x, y):
@@ -97,7 +101,8 @@ class FHVAE(nn.Module):
 
 
 def log_gauss(x, mu, logvar):
-    return -0.5 * (np.log(2 * np.pi) + logvar.data + torch.pow(x.data - mu.data, 2) / torch.exp(logvar.data))
+    log_2pi = torch.FloatTensor([np.log(2 * np.pi)]).cuda()
+    return -0.5 * (log_2pi + logvar.data + torch.pow(x.data - mu.data, 2) / torch.exp(logvar.data))
 
 def kld(p_mu, p_logvar, q_mu, q_logvar):
     return -0.5 * (1 + p_logvar.data - q_logvar.data - (torch.pow(p_mu.data - q_mu.data, 2) + torch.exp(p_logvar.data)) / torch.exp(q_logvar.data))

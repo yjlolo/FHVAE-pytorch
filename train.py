@@ -7,14 +7,18 @@ import torch
 import torch.utils.data
 from torch import nn, optim
 from torch.autograd import Variable
+from torch.utils.data import DataLoader
 from scripts.train.train_loaders import load_data
+from fhvae.datasets.wav_dataset import LogSpectrumDataset
 from fhvae.fhvae import *
 
 print("I am process %s, running on %s: starting (%s)" % (os.getpid(), os.uname()[1], time.asctime()))
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("--dataset", type=str, default="timit_np_fbank",
-        help="dataset to use")
+parser.add_argument("--data_dir", type=str, default="/home/ckycky3/deepest/FHVAE-pytorch/datasets/timit_processed",
+        help="dataset directory")
+parser.add_argument("--batch_size", type=int, default=256,
+        help="batch size")
 parser.add_argument("--alpha_dis", type=float, default=10.,
         help="discriminative objective weight")
 parser.add_argument("--n_epochs", type=int, default=100,
@@ -36,10 +40,17 @@ print(args)
 
 use_cuda = not args.no_cuda and torch.cuda.is_available()
 
-tr_nseqs, tr_shape, tr_iterator, dt_iterator = load_data(args.dataset)
+# tr_nseqs, tr_shape, tr_iterator, dt_iterator = load_data(args.dataset)
+# tr_nseqs = len(os.listdir(args.dataset))
+
+dataset = LogSpectrumDataset(args.data_dir)
+# tr_nseqs = len(dataset)
+tr_nseqs = dataset.nmu2
+
+dataloader = DataLoader(dataset, batch_size=args.batch_size)
 
 fhvae = FHVAE(nmu2=tr_nseqs, z1_dim=32, z2_dim=32,
-              z1_hidden_dim=256, z2_hidden_dim=256, dec_hidden_dim=256)
+              z1_hidden_dim=256, z2_hidden_dim=256, dec_hidden_dim=256, use_cuda=use_cuda)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(fhvae.parameters())
 
@@ -51,11 +62,12 @@ current_step = 0
 epoch = 0
 while epoch < args.n_epochs:
     print("Epoch %d" % (epoch+1))
-    for x, y, n in tr_iterator():
-        xin = Variable(torch.FloatTensor(x))
-        xout = Variable(torch.FloatTensor(x))
-        y = Variable(torch.LongTensor(y))
-        n = Variable(torch.FloatTensor(n))
+    # for x, y, n in tr_iterator():
+    for i, data in enumerate(dataloader):
+        xin = Variable(torch.FloatTensor(data['x']))
+        xout = Variable(torch.FloatTensor(data['x']))
+        y = Variable(torch.LongTensor(data['y']))
+        n = Variable(torch.LongTensor(data['n']))
         if use_cuda:
             xin = xin.cuda()
             xout = xout.cuda()
@@ -82,7 +94,7 @@ while epoch < args.n_epochs:
         kld_z2 = torch.sum(kld(qz2_x[0], qz2_x[1], pz2[0], pz2[1]), dim=1)
         kld_z1 = torch.sum(kld(qz1_x[0], qz1_x[1], pz1[0], pz1[1]), dim=1)
         log_px_z = torch.sum(log_gauss(xout, px_z[0], px_z[1]).view(xout.size(0), -1), dim=1)
-        lb = log_px_z - kld_z1 - kld_z2 + log_pmu2 / n
+        lb = log_px_z - kld_z1 - kld_z2 + log_pmu2 / n.float()
 
         # discriminative loss
         logits = qz2_x[0].unsqueeze(1) - fhvae.mu2_lookup.weight.unsqueeze(0)
@@ -99,7 +111,10 @@ while epoch < args.n_epochs:
         current_step += 1
 
         if current_step % args.n_print_steps == 0:
-            print("step %d, loss %f" % (current_step, loss.data))
+            print("step %d loss %f lb %f log_px_z %f kld_z1 %f kld_z2 %f log_pmu2/n %f discriminative %f"
+                  % (current_step, loss.data, torch.mean(lb).data,
+                     torch.mean(log_px_z).data,torch.mean(kld_z1).data, torch.mean(kld_z2).data,
+                     torch.mean(log_pmu2 / n.float()).data, torch.mean(log_qy).data,))
 
         if current_step % args.n_save_steps == 0:
             print("saving model, epoch %d, step %d" % (epoch+1, current_step))
